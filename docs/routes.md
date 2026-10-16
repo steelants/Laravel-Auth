@@ -15,10 +15,10 @@ Enabled by default.
 
 | Method | URI | Name | Middleware |
 |---|---|---|---|
-| GET | `/login` | `login` | - |
-| POST | `/login` | `login.submit` | - |
-| GET | `/logout` | - | - |
-| POST | `/logout` | `logout` | - |
+| GET | `/login` | `login` | `guest` |
+| POST | `/login` | `login.submit` | `guest` |
+| GET | `/logout` | - | `auth` |
+| POST | `/logout` | `logout` | `auth` |
 
 Logout routes are excluded from the email verification and TOTP middleware so users can always log out.
 
@@ -29,8 +29,8 @@ Enabled by default.
 
 | Method | URI | Name | Middleware |
 |---|---|---|---|
-| GET | `/register` | `register` | - |
-| POST | `/register` | `register.submit` | - |
+| GET | `/register` | `register` | `guest` |
+| POST | `/register` | `register.submit` | `guest` |
 
 
 ## Password Reset
@@ -39,10 +39,10 @@ Enabled by default.
 
 | Method | URI | Name | Middleware |
 |---|---|---|---|
-| GET | `/password/reset` | `password` | - |
-| POST | `/password/email` | `password.email` | - |
-| GET | `/password/reset/{token}` | `password.reset` | `throttle:6,1` |
-| POST | `/password/reset/` | `password.update` | `throttle:6,1` |
+| GET | `/password/reset` | `password` | `guest` |
+| POST | `/password/email` | `password.email` | `guest` |
+| GET | `/password/reset/{token}` | `password.reset` | `guest`, `throttle:6,1` |
+| POST | `/password/reset/` | `password.update` | `guest`, `throttle:6,1` |
 
 
 ## Email Verification

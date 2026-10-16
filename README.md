@@ -14,7 +14,7 @@
 
 <h1>Laravel-Auth</h1>
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/steelants/laravel-auth.svg?style=flat-square)](https://packagist.org/packages/steelants/laravel-auth) [![Total Downloads](https://img.shields.io/packagist/dt/steelants/laravel-auth.svg?style=flat-square)](https://packagist.org/packages/steelants/laravel-auth)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/steelants/laravel-auth.svg?style=flat-square)](https://packagist.org/packages/steelants/laravel-auth) [![Tests](https://img.shields.io/github/actions/workflow/status/steelants/laravel-auth/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/steelants/laravel-auth/actions/workflows/tests.yml) [![Total Downloads](https://img.shields.io/packagist/dt/steelants/laravel-auth.svg?style=flat-square)](https://packagist.org/packages/steelants/laravel-auth)
 
 <p>
 A lightweight authentication scaffolding package for Laravel with login, registration, password reset, email verification and TOTP two-factor authentication.
