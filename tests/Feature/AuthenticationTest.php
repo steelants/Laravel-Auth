@@ -100,6 +100,15 @@ class AuthenticationTest extends TestCase
             ->assertRedirect();
     }
 
+    public function test_authenticated_user_cannot_see_guest_pages()
+    {
+        $this->actingAs($this->createUser());
+
+        foreach (['/login', '/register', '/password/reset', '/password/reset/some-token'] as $page) {
+            $this->get($page)->assertRedirect('/dashboard');
+        }
+    }
+
     public function test_guest_is_redirected_to_login_from_protected_page()
     {
         $this->get('/dashboard')->assertRedirect('/login');
