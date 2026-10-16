@@ -146,16 +146,6 @@ class RouteRegistrationTest extends TestCase
         $this->assertContains(EnsureTotpVerified::class, $excluded('logout'));
     }
 
-    public function test_login_is_rate_limited()
-    {
-        $middleware = Route::getRoutes()->getByName('login.submit')->gatherMiddleware();
-
-        $this->assertNotEmpty(
-            array_filter($middleware, fn ($m) => is_string($m) && str_starts_with($m, 'throttle')),
-            'POST /login has no throttle middleware.'
-        );
-    }
-
     #[DataProvider('featureCombinations')]
     public function test_feature_combination_registers_matching_routes(array $options)
     {

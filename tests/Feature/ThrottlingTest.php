@@ -9,21 +9,83 @@ use SteelAnts\LaravelAuth\Tests\TestCase;
 
 class ThrottlingTest extends TestCase
 {
-    public function test_login_is_throttled_after_too_many_failed_attempts()
+    private function failLogin(string $email, int $times): void
+    {
+        for ($i = 0; $i < $times; $i++) {
+            $this->from('/login')->post('/login', ['email' => $email, 'password' => 'wrong-password']);
+        }
+    }
+
+    public function test_login_is_throttled_after_five_failed_attempts()
     {
         $user = $this->createUser();
 
-        for ($i = 0; $i < 10; $i++) {
-            $this->from('/login')->post('/login', ['email' => $user->email, 'password' => 'wrong-password']);
-        }
+        $this->failLogin($user->email, 5);
 
-        $response = $this->from('/login')->post('/login', ['email' => $user->email, 'password' => 'password']);
+        $this->from('/login')
+            ->post('/login', ['email' => $user->email, 'password' => 'password'])
+            ->assertRedirect('/login')
+            ->assertSessionHasErrors('email')
+            ->assertSessionHasInput('email', $user->email);
 
         $this->assertGuest();
-        $this->assertTrue(
-            $response->status() === 429 || $response->isRedirect(url('/login')),
-            'Login with correct password succeeded right after 10 failed attempts.'
-        );
+    }
+
+    public function test_login_is_not_throttled_before_limit_is_reached()
+    {
+        $user = $this->createUser();
+
+        $this->failLogin($user->email, 4);
+
+        $this->post('/login', ['email' => $user->email, 'password' => 'password'])->assertRedirect('/home');
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_successful_login_resets_failed_attempts()
+    {
+        $user = $this->createUser();
+
+        $this->failLogin($user->email, 4);
+        $this->post('/login', ['email' => $user->email, 'password' => 'password'])->assertRedirect('/home');
+        $this->post('/logout');
+
+        $this->failLogin($user->email, 4);
+        $this->post('/login', ['email' => $user->email, 'password' => 'password'])->assertRedirect('/home');
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_login_throttle_is_per_email()
+    {
+        $user = $this->createUser();
+        $other = $this->createUser();
+
+        $this->failLogin($user->email, 5);
+
+        $this->post('/login', ['email' => $other->email, 'password' => 'password'])->assertRedirect('/home');
+        $this->assertAuthenticatedAs($other);
+    }
+
+    public function test_login_throttle_ignores_email_case()
+    {
+        $user = $this->createUser();
+
+        $this->failLogin(strtoupper($user->email), 5);
+
+        $this->from('/login')
+            ->post('/login', ['email' => $user->email, 'password' => 'password'])
+            ->assertSessionHasErrors('email');
+        $this->assertGuest();
+    }
+
+    public function test_login_throttle_is_released_after_one_minute()
+    {
+        $user = $this->createUser();
+
+        $this->failLogin($user->email, 5);
+        $this->travel(61)->seconds();
+
+        $this->post('/login', ['email' => $user->email, 'password' => 'password'])->assertRedirect('/home');
+        $this->assertAuthenticatedAs($user);
     }
 
     public function test_reset_link_request_is_throttled_by_password_broker()

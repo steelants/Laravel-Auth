@@ -78,21 +78,21 @@ $this->useAuthRoutes(['register' => false, 'reset' => false]);
 
 ## Continuous Integration
 
-GitHub Actions (`.github/workflows/tests.yml`) runs the suite on every push and pull request against a matrix of:
+GitHub Actions (`.github/workflows/tests.yml`) runs the suite on every push and pull request, once for every supported Laravel version on the highest PHP version that version supports:
 
-| Laravel | Testbench | PHP           |
-|---------|-----------|---------------|
-| 11.x    | 9.x       | 8.2 – 8.4     |
-| 12.x    | 10.x      | 8.2 – 8.5     |
-| 13.x    | 11.x      | 8.3 – 8.5     |
+| Laravel | Testbench | PHP |
+|---------|-----------|-----|
+| 11.x    | 9.x       | 8.4 |
+| 12.x    | 10.x      | 8.5 |
+| 13.x    | 11.x      | 8.5 |
 
-Each combination is installed with both `--prefer-lowest` and `--prefer-stable`, so the lowest and the newest versions allowed by `composer.json` are verified.
+Laravel 11 is out of security support and every release has an open security advisory, so its job disables Composer's advisory blocking (`policy.advisories.block`).
 
 To reproduce a CI job locally:
 
 ```bash
 composer require "laravel/framework:12.*" "orchestra/testbench:10.*" --dev --no-update
-composer update --prefer-lowest
+composer update --prefer-stable
 ./vendor/bin/phpunit
 ```
 

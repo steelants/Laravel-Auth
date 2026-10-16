@@ -13,6 +13,8 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\RateLimiter;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 trait Authentication
 {
@@ -20,7 +22,7 @@ trait Authentication
 
 	public function __construct()
     {
-        $this->middleware('guest')->except('logout');
+        $this->middleware('guest')->only(['login', 'loginPost', 'register', 'registerPost', 'reset', 'resetPost', 'resetToken', 'resetPasswordSubmit']);
         $this->middleware('auth')->only('logout');
     }
 
@@ -64,19 +66,9 @@ trait Authentication
             return view('auth.login');
         }
 
-        $url = url()->previous();
-        $excludedUrls = array_filter([
-            route('logout'),
-            Route::has('register') ? route('register') : null,
-            Route::has('password') ? route('password') : null,
-            Route::has('password.email') ? route('password.email') : null,
-            Route::has('password.reset') ? url('/password/reset') : null,
-        ]);
-        if ($url != url()->current() && !session()->has('previous-url') && !in_array($url, $excludedUrls)) {
-            //Check if url you are redirecting to actually exists
-            if (Route::getRoutes()->match(Request::create($url))) {
-                session(['previous-url' => $url]);
-            }
+        $url = $request->headers->get('referer') ?: $request->session()->previousUrl();
+        if ($url && !session()->has('previous-url') && $this->isValidPreviousUrl($url)) {
+            session(['previous-url' => $url]);
         }
         return view('auth.login');
     }
@@ -91,6 +83,15 @@ trait Authentication
             'password' => ['required'],
         ]);
 
+        $throttleKey = Str::transliterate(Str::lower($request->input('email')) . '|' . $request->ip());
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            return back()->withInput($request->only('email'))->withErrors([
+                'email' => trans('auth.throttle', ['seconds' => $seconds, 'minutes' => ceil($seconds / 60)]),
+            ]);
+        }
+
         if (method_exists($this, 'verifyLoginAttempt')) {
             if ($this->verifyLoginAttempt($request)) {
                 return back()->with('error', __('Nesprávné jméno nebo heslo'));
@@ -101,15 +102,19 @@ trait Authentication
 
 		if (method_exists($this, 'loginAttempt')) {
             if ($this->loginAttempt($credentials, $request->boolean('remember'))) {
+                RateLimiter::clear($throttleKey);
                 $request->session()->regenerate();
                 return $this->getRegirect();
             }
         } else {
             if (Auth::attempt($credentials, $request->boolean('remember'))) {
+                RateLimiter::clear($throttleKey);
                 $request->session()->regenerate();
                 return $this->getRegirect();
             }
         }
+
+        RateLimiter::hit($throttleKey);
 
         return back()->with('error', __('Nesprávné jméno nebo heslo'));
     }
@@ -203,6 +208,39 @@ trait Authentication
         }
 
         return property_exists($this, 'redirectTo') ? $this->redirectTo : 'home';
+    }
+
+    private function isValidPreviousUrl(string $url): bool
+    {
+        if ($url == url()->current()) {
+            return false;
+        }
+
+        //Do not redirect outside of the application
+        $root = url('/');
+        if ($url !== $root && !str_starts_with($url, $root . '/')) {
+            return false;
+        }
+
+        $excludedUrls = array_filter([
+            Route::has('logout') ? route('logout') : null,
+            Route::has('register') ? route('register') : null,
+            Route::has('password') ? route('password') : null,
+            Route::has('password.email') ? route('password.email') : null,
+            Route::has('password.reset') ? url('/password/reset') : null,
+        ]);
+        if (in_array($url, $excludedUrls)) {
+            return false;
+        }
+
+        //Check if url you are redirecting to actually exists
+        try {
+            Route::getRoutes()->match(Request::create($url));
+        } catch (HttpExceptionInterface $e) {
+            return false;
+        }
+
+        return true;
     }
 
     private function afterLoginRedirect(Request $request): RedirectResponse

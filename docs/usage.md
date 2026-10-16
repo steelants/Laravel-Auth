@@ -76,7 +76,9 @@ Validation rules:
 'password' => 'required',
 ```
 
-After a successful login the user is redirected to the intended URL or the default redirect path.
+After a successful login the user is redirected back to the page they came from (only pages of the application with an existing route) or to the default redirect path.
+
+Failed login attempts are rate limited per e-mail and IP address: after 5 failed attempts further attempts are rejected for one minute with the `auth.throttle` message. A successful login resets the counter.
 
 
 ## Registration
