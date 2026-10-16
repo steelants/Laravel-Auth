@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use LogicException;
 use Symfony\Component\HttpFoundation\Response;
-use SteelAnts\LaravelAuth\Traits\HandlesTotp;
+use Illuminate\Http\RedirectResponse;
 
 class EnsureTotpVerified
 {
@@ -30,7 +30,7 @@ class EnsureTotpVerified
         return $next($request);
     }
 
-	 protected function responseIfTotpRequired(Request $request): Response|RedirectResponse|null
+    protected function responseIfTotpRequired(Request $request): Response|RedirectResponse|null
     {
         $user = $request->user();
 
