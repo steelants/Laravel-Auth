@@ -94,6 +94,18 @@ class EmailVerificationTest extends TestCase
         $this->actingAs($user)->get($this->verificationUrl($user))->assertRedirect('/account');
     }
 
+    public function test_user_is_redirected_to_intended_page_after_login_and_verification()
+    {
+        $user = $this->createUser(['email_verified_at' => null]);
+
+        $this->get('/account')->assertRedirect('/login');
+        $this->post('/login', ['email' => $user->email, 'password' => 'password'])
+            ->assertRedirect('/account');
+        $this->get('/account')->assertRedirect('/email/verify');
+
+        $this->get($this->verificationUrl($user))->assertRedirect('/account');
+    }
+
     public function test_email_is_not_verified_with_invalid_hash()
     {
         $user = $this->createUser(['email_verified_at' => null]);

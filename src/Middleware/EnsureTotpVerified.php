@@ -47,7 +47,7 @@ class EnsureTotpVerified
         $totpVerified = (bool) $request->session()->get('totp_passed');
 
         if (($forceTotp && !$hasTotp) || ($hasTotp && !$totpVerified)) {
-            return $request->expectsJson() ? abort(403, 'Two-factor authentication required.') : redirect()->route('totp.prompt');
+            return $request->expectsJson() ? abort(403, 'Two-factor authentication required.') : redirect()->guest(route('totp.prompt'));
         }
 
         return null;

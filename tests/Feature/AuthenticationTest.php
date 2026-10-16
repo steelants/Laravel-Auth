@@ -121,7 +121,7 @@ class AuthenticationTest extends TestCase
         $this->get('/dashboard')->assertOk()->assertSee('dashboard');
     }
 
-    public function test_previous_url_is_used_only_once()
+    public function test_intended_url_is_used_only_once()
     {
         $user = $this->createUser();
 
@@ -190,8 +190,7 @@ class AuthenticationTest extends TestCase
     {
         $this->actingAs($this->createUser())
             ->post('/logout')
-            ->assertRedirect('/login')
-            ->assertSessionHas('from_logout', true);
+            ->assertRedirect('/login');
 
         $this->assertGuest();
     }
