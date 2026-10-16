@@ -20,12 +20,6 @@ trait Authentication
 {
     //protected string $redirect = 'home';
 
-	public function __construct()
-    {
-        $this->middleware('guest')->only(['login', 'loginPost', 'register', 'registerPost', 'reset', 'resetPost', 'resetToken', 'resetPasswordSubmit']);
-        $this->middleware('auth')->only('logout');
-    }
-
     public function register()
     {
         return view('auth.registration');

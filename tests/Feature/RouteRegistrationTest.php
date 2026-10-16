@@ -122,6 +122,11 @@ class RouteRegistrationTest extends TestCase
         $middleware = fn (string $name) => Route::getRoutes()->getByName($name)->gatherMiddleware();
         $excluded = fn (string $name) => Route::getRoutes()->getByName($name)->excludedMiddleware();
 
+        foreach (['login', 'login.submit', 'register', 'register.submit', 'password', 'password.email', 'password.reset', 'password.update'] as $name) {
+            $this->assertContains('guest', $middleware($name));
+        }
+        $this->assertContains('auth', $middleware('logout'));
+
         $this->assertContains('throttle:6,1', $middleware('password.reset'));
         $this->assertContains('throttle:6,1', $middleware('password.update'));
 
