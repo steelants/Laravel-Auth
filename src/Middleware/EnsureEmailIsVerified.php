@@ -16,7 +16,7 @@ class EnsureEmailIsVerified
         if ($user instanceof MustVerifyEmail && !$user->hasVerifiedEmail()) {
             return $request->expectsJson()
                 ? abort(403, 'Your email address is not verified.')
-                : redirect()->route('verification.notice');
+                : redirect()->guest(route('verification.notice'));
         }
 
         return $next($request);

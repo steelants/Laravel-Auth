@@ -24,3 +24,4 @@ Homestead.json
 composer.lock
 /.megamemory
 .phpunit.cache
+/.megamemory
