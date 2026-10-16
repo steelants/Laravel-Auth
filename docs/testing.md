@@ -78,7 +78,7 @@ $this->useAuthRoutes(['register' => false, 'reset' => false]);
 
 ## Continuous Integration
 
-GitHub Actions (`.github/workflows/tests.yml`) runs the suite on every push and pull request, once for every supported Laravel version on the highest PHP version that version supports:
+GitHub Actions (`.github/workflows/tests.yml`) runs the suite on every pull request (a newer push cancels the running check), once for every supported Laravel version on the highest PHP version that version supports:
 
 | Laravel | Testbench | PHP |
 |---------|-----------|-----|
